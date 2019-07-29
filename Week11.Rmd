@@ -1,0 +1,127 @@
+---
+title: "Week11"
+author: "nrupali shetty"
+date: "7/28/2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+```
+
+
+```{r setup, include=FALSE}
+#PCA works better with numerical data exclude vs and am.Matrix has 9 columns and 32 rows passing it to prcomp() assign output to mtcars.pca with two arguments cebter and scale-->TRUE with summary() to get PCA object
+mtcars.pca <- prcomp(mtcars[,c(1:7,10,11)], center = TRUE,scale. = TRUE)
+summary(mtcars.pca)
+
+#checking str() to see PCA object
+str(mtcars.pca)
+
+```
+
+```{r}
+#PLotting the PCA
+library(devtools)
+install_github("vqv/ggbiplot")
+#suing ggbiplot package
+library(ggbiplot)
+ggbiplot(mtcars.pca)
+
+#axes originating from center point.variables hp,cyl and disp all contribute to PC1 moving samples to right
+
+ggbiplot(mtcars.pca, labels=rownames(mtcars)) 
+#showing cars similar to each other example maseratti bora , ferrari and ford cluster together at top-->all sports cars
+
+```
+
+```{r}
+#Interpreting the results by catergories US,Japaneses and European cars
+mtcars.country <- c(rep("Japan", 3), rep("US",4), rep("Europe", 7),rep("US",3), "Europe", rep("Japan", 3), rep("US",4), rep("Europe", 3), "US", rep("Europe", 3))
+
+ggbiplot(mtcars.pca,ellipse=TRUE,  labels=rownames(mtcars), groups=mtcars.country)
+
+#American cars form a distinct cluster with high values Cyl,disp and wt
+#Japanese high mpg
+#European middle and less tightly clustered
+
+# To look atPC3 and PC4:
+
+ggbiplot(mtcars.pca,ellipse=TRUE,choices=c(3,4),   labels=rownames(mtcars), groups=mtcars.country)
+
+#PC3 and PC4 small percentage of total variation 
+```
+
+```{r}
+#Graphical parameters with ggbiplot
+#to alter biplot we add a circle argument
+
+ggbiplot(mtcars.pca,ellipse=TRUE,circle=TRUE, labels=rownames(mtcars), groups=mtcars.country)
+
+
+#tried to scaling the samples with obs.scale and var.scale
+
+ggbiplot(mtcars.pca,ellipse=TRUE,obs.scale = 1, var.scale = 1,  labels=rownames(mtcars), groups=mtcars.country)
+```
+
+```{r}
+#customuze ggbiplot
+#ggbiplot based on ggplot function same set of graphical parameters to alter biplot as ggplot
+#by specifying colour scale_colour_manaul(),adding title ggtitle(),Specifying theme Minimal(), moving legent theme theme()
+
+ggbiplot(mtcars.pca,ellipse=TRUE,obs.scale = 1, var.scale = 1,  labels=rownames(mtcars), groups=mtcars.country) +
+  scale_colour_manual(name="Origin", values= c("Yellow", "blue", "orange"))+
+  ggtitle("PCA of mtcars dataset")+
+  theme_minimal()+
+  theme(legend.position = "left") #Changed the legend to be left
+```
+
+```{r}
+#Add a new sample
+#adding mtcarsplus repeating our analysis
+
+spacecar <- c(1000,60,50,500,0,0.5,2.5,0,1,0,0)
+
+mtcarsplus <- rbind(mtcars, spacecar)
+mtcars.countryplus <- c(mtcars.country, "Jupiter")
+
+mtcarsplus.pca <- prcomp(mtcarsplus[,c(1:7,10,11)], center = TRUE,scale. = TRUE)
+
+ggbiplot(mtcarsplus.pca, obs.scale = 1, var.scale = 1, ellipse = TRUE, circle = FALSE, var.axes=TRUE, labels=c(rownames(mtcars), "spacecar"), groups=mtcars.countryplus)+
+  scale_colour_manual(name="Origin", values= c("Yellow", "blue", "orange"))+
+  ggtitle("PCA of mtcars dataset, with extra sample added")+
+  theme_minimal()+
+  theme(legend.position = "bottom")
+
+#PCA changed to huge extent with addition as extra sample is an extreme outlier 
+```
+
+
+```{r}
+#further the author explains component defined relation to spacecar sample skewed to mean,Scale values for spacecar to PCA center
+
+s.sc <- scale(t(spacecar[c(1:7,10,11)]), center= mtcars.pca$center)
+s.pred <- s.sc %*% mtcars.pca$rotation
+
+
+mtcars.plusproj.pca <- mtcars.pca
+mtcars.plusproj.pca$x <- rbind(mtcars.plusproj.pca$x, s.pred)
+
+
+ggbiplot(mtcars.plusproj.pca, obs.scale = 1, var.scale = 1, ellipse = TRUE, circle = FALSE, var.axes=TRUE, labels=c(rownames(mtcars), "spacecar"), groups=mtcars.countryplus)+
+  scale_colour_manual(name="Origin", values= c("Yellow", "blue", "orange")+
+  ggtitle("PCA of mtcars dataset with extra sample projected 'Jupiter")+
+  theme_minimal()+
+  theme(legend.position = "bottom")
+#Result drastically different as all samples are back in initial positions extra sample not skewed 
+#Better Recomputation of PCA
+#both approacges useful doing EDA it tells variable separate American cars from other and Spacecar is outlier in dataset
+```
+
+
+
+
+
+
+
