@@ -1,0 +1,55 @@
+---
+title: "Weel10"
+author: "nrupali shetty"
+date: "7/27/2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+```{r}
+#using simulated data trying to demostarte k means algorith works
+set.seed(1234)
+x <- rnorm(12, mean = rep(1:3, each = 4), sd = 0.2)
+y <- rnorm(12, mean = rep(c(1, 2, 1), each = 4), sd = 0.2)
+plot(x, y, col = "blue", pch = 19, cex = 2)
+text(x + 0.05, y + 0.05, labels = as.character(1:12))
+
+# We see K-means assign intial set of centroids
+#three clusters we can choose three centroids arbitrarily and start plotting
+#algo assignes every point in dataset to closet centroid
+#for incorrect clusters re caculate the centroids on new cluster assignment of data points
+#alog continues cycle to new closet cluster centroid
+#updating new positions and re-assigned points
+
+```
+
+```{r}
+#Using the kmeans() function in stats package using two parameters data and centers to matrix
+
+library(stats)
+dataFrame <- data.frame(x, y)
+kmeansObj <- kmeans(dataFrame, centers = 3)
+names(kmeansObj)
+
+#shows each cluster data point assigned to element of list
+
+```
+```{r}
+#Building heatmaps from K means solutions -->to visualize matrix of array data 
+#to find k means solutions 
+#cluster each data point assigned to pointing cluster element
+set.seed(1234)
+dataMatrix <- as.matrix(dataFrame)[sample(1:12), ]
+kmeansObj <- kmeans(dataMatrix, centers = 3)
+
+```
+```{r}
+#trying to make an image plot using the K-means clusters
+par(mfrow = c(1, 2))
+image(t(dataMatrix)[, nrow(dataMatrix):1], yaxt = "n", main = "Original Data")
+#turning image using clustered data
+image(t(dataMatrix)[, order(kmeansObj$cluster)], yaxt = "n", main = "Clustered Data")
+#Clustered version of the image has homogenous nature in terms of coloring 
+``
