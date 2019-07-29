@@ -1,0 +1,232 @@
+---
+title: "Week6"
+author: "nrupali shetty"
+date: "7/21/2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r setup, include=FALSE}
+#trying to installing packages nycflights13 and tidyverse library
+library(nycflights13)
+library(tidyverse)
+```
+
+```{r setup, include=FALSE}
+#data frame with 336,776 flights that departed from NYC in 2013. records by US Bureau of Transportation Statistics
+flights
+```
+```{r setup, include=FALSE}
+#filter() has subset observations based on their values.First argument- name of dataframe and second expressions 
+filter(flights, month == 1, day == 1)
+```
+```{r setup, include=FALSE}
+#trying to run that line of code package dplyr executes the filtering operation and returns a new data frame. The dplyr functions never modify their inputs
+
+jan4 <- filter(flights, month == 1, day == 5)
+
+#Print result 
+
+(dec25 <- filter(flights, month == 12, day == 31))
+
+```
+```{r setup, include=FALSE}
+#Memory of the computer required to do arthimetic calculation as they cannot store load of data
+#Instead of using  ==, use near() to reduce memory allocation during execution
+near(sqrt(3) ^ 3,  2)
+near(1 / 64 * 64, 1)
+```
+```{r setup, include=FALSE}
+#checking for all flights that departed in may or dec:
+filter(flights, month == 5 | month == 12)
+
+#checking in dataset the flights that were delaye by more than 2 hours ie 120 minutes
+
+filter(flights, !(arr_delay > 120 | dep_delay > 120))
+filter(flights, arr_delay <= 120, dep_delay <= 120)
+
+#finding unknown value will also be unknown.
+NA > 5
+
+#filter() only includes rows where the condition is TRUE
+df <- tibble(x = c(1, NA, 3))
+filter(df, x > 1)
+filter(df, is.na(x) | x > 1)
+```
+```{r setup, include=FALSE}
+#arrange() works similarly to filter() except  instead of selecting rows
+arrange(flights, year, month, day)
+```
+```{r setup, include=FALSE}
+# desc() to order desceding columns 
+arrange(flights, desc(dep_delay))
+
+#sorting all the NA at the bottom:
+df <- tibble(x = c(5, 2, NA))
+arrange(df, x)
+arrange(df, desc(x))
+
+#sleecting columns
+select(flights, year, month, day)
+
+#Select all columns except those from year to day
+select(flights, -(year:day))
+
+#select() 
+rename(flights, tail_num = tailnum)
+
+#use  select() in conjunction with the everything() helpes.
+select(flights, time_hour, air_time, everything())
+
+```
+```{r setup, include=FALSE}
+#mutate() 
+
+
+
+flights_sml <- select(flights, 
+  year:day, 
+  ends_with("delay"), 
+  distance, 
+  air_time
+)
+mutate(flights_sml,
+  gain = dep_delay - arr_delay,
+  speed = distance / air_time * 60
+  )
+
+#use transmute():
+
+transmute(flights,
+  gain = dep_delay - arr_delay,
+  hours = air_time / 60,
+  gain_per_hour = gain / hours
+)
+
+#The last key verb is summarise()
+summarise(flights, delay = mean(dep_delay, na.rm = TRUE))
+
+#summarise() 
+by_day <- group_by(flights, year, month, day)
+summarise(by_day, delay = mean(dep_delay, na.rm = TRUE))
+
+
+# missing values and thus we should add an narm argument
+flights %>% 
+  group_by(year, month, day) %>% 
+  summarise(mean = mean(dep_delay, na.rm = TRUE))
+
+# missing values represent the cancelled flights, 
+
+not_cancelled <- flights %>% 
+  filter(!is.na(dep_delay), !is.na(arr_delay))
+
+not_cancelled %>% 
+  group_by(year, month, day) %>% 
+  summarise(mean = mean(dep_delay))
+
+# the highest average delays:
+
+delays <- not_cancelled %>% 
+  group_by(tailnum) %>% 
+  summarise(
+    delay = mean(arr_delay)
+  )
+
+ggplot(data = delays, mapping = aes(x = delay)) + 
+  geom_freqpoly(binwidth = 10)
+
+#creating scatterplot of number of flights vs. average delay:
+
+delays <- not_cancelled %>% 
+  group_by(tailnum) %>% 
+  summarise(
+    delay = mean(arr_delay, na.rm = TRUE),
+    n = n()
+  )
+
+ggplot(data = delays, mapping = aes(x = n, y = delay)) + 
+  geom_point(alpha = 1/10)
+
+#finding smallest group
+
+delays %>% 
+  filter(n > 25) %>% 
+  ggplot(mapping = aes(x = n, y = delay)) + 
+    geom_point(alpha = 1/10)
+
+#Using Summary functions:
+
+not_cancelled %>% 
+  group_by(year, month, day) %>% 
+  summarise(
+    avg_delay1 = mean(arr_delay),
+    avg_delay2 = mean(arr_delay[arr_delay > 0]) # the average positive delay
+  )
+# summarize  distance destinations 
+not_cancelled %>% 
+  group_by(dest) %>% 
+  summarise(distance_sd = sd(distance)) %>% 
+  arrange(desc(distance_sd))
+
+# first and last flights leave each day
+not_cancelled %>% 
+  group_by(year, month, day) %>% 
+  summarise(
+    first = min(dep_time),
+    last = max(dep_time)
+  )
+
+#checking first and last departure for each day:
+
+not_cancelled %>% 
+  group_by(year, month, day) %>% 
+  summarise(
+    first_dep = first(dep_time), 
+    last_dep = last(dep_time)
+  )
+#Filtering gives you all variables,  separate row:
+
+not_cancelled %>% 
+  group_by(year, month, day) %>% 
+  mutate(r = min_rank(desc(dep_time))) %>% 
+  filter(r %in% range(r))
+
+#Counts:use n_distinct(x).
+
+# Here we find out which  destinations have the most carriers?
+not_cancelled %>% 
+  group_by(dest) %>% 
+  summarise(carriers = n_distinct(carrier)) %>% 
+  arrange(desc(carriers))
+
+#group by Multiple variables
+daily <- group_by(flights, year, month, day)
+(per_day   <- summarise(daily, flights = n()))
+(per_month <- summarise(per_day, flights = sum(flights)))
+(per_year  <- summarise(per_month, flights = sum(flights)))
+
+#use ungroup().
+
+daily %>% 
+  ungroup() %>%             # no longer grouped by date
+  summarise(flights = n())  # all flights
+
+#Grouping operations with mutate() and filter():
+
+
+flights_sml %>% 
+  group_by(year, month, day) %>%
+  filter(rank(desc(arr_delay)) < 10)
+
+# groups bigger than a threshold:
+popular_dests <- flights %>% 
+  group_by(dest) %>% 
+  filter(n() > 365)
+popular_dests
+```
+
+
