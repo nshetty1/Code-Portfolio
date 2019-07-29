@@ -1,0 +1,130 @@
+---
+title: "Week9"
+author: "nrupali shetty"
+date: "7/27/2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+```{r setup, include=FALSE}
+#Base plotting system
+#plot function to use scatterplot and add linear regression line
+
+data("airquality")
+with(airquality,{plot(Temp,Ozone)
+  lines(loess.smooth(Temp,Ozone))})
+```
+```{r setup, include=TRUE}
+#ggplot2 package to contruct base plot
+
+data(cars)
+
+##Create the plot
+with(cares, plot(speed,dist))
+
+#add Annotation 
+title("Speed vs Stopping distance")
+```
+```{r setup, include=TRUE}
+#Lattice System import lattice package
+library(lattice)
+
+#Lattice plot relation between life expectancy and income and relationship varies by region
+state<- dataFrame(state.x77, region =  state.region)
+xyplot(Life.Exp ~ Income | region, data = state, layout=c(4,1))
+
+```
+
+```{r setup, include=TRUE}
+#Chapter 8
+#Installed package ggplot2  library datasets
+install.packages("ggplot2")
+library(datasets)
+library(ggplot2)
+```
+
+
+```{r setup, include=TRUE}
+#basic histogram of airquality$Ozone
+library(datasets)
+hist(airquality$Ozone)
+```
+
+
+```{r setup, include=TRUE}
+#basic Scatterplot of Ozone$Wind
+library(datasets)
+with(airquality, plot(Wind, Ozone))
+```
+
+
+```{r setup, include=TRUE}
+#creating boxplot
+library(datasets)
+airquality <- transform(airquality, Month = factor(Month))
+boxplot(Ozone ~ Month, airquality, xlab = "Month", ylab = "Ozone (ppb)")
+```
+
+```{r setup, include=TRUE}
+#base plot with Annotation
+library(datasets)
+with(airquality, plot(Wind, Ozone, main = "Ozone vs Wind in NY"))
+with(subset(airquality, Month == 5), points(Wind, Ozone, col = "blue"))
+```
+
+
+```{r setup, include=TRUE}
+#This is base plot of Speed vs Stopping Distance
+data(cars)
+with(cars, plot(speed,dist))
+title("Speed vs Stopping Distance")
+```
+
+
+```{r setup, include=TRUE}
+#ggplot2
+data(mpg)
+qplot(displ,hwy,data = mpg)
+```
+
+
+
+
+```{r setup, include=TRUE}
+#making a plot appear on the screen device
+with(faithful,plot(eruptions,waiting))
+
+#annotate with a title
+title(main = "Old Faithful Geyser Data")
+```
+
+
+```{r setup, include=TRUE}
+#checking  PDF file stored in working directory
+
+pdf(file = "graphicdevice.pdf")
+
+#creating plot and send a file
+
+with(faithful, plot(eruptions,waiting))
+
+#annotate plot with title
+title(main = "Old Faithful Geyser data")
+dev.off
+
+#now can view myplot.pdf in computer
+```
+
+```{r setup, include=TRUE}
+library(datasets)
+#creatng plot on screen device
+#Copying plots to a PNG file 
+with(faithful, plot(eruptions,waiting))
+#add title
+title(main = "Old Faithful Geyser Data")
+#copy my plot to PNG file
+dev.copy(png, file = "geyserplot.png")
+dev.off
+```
